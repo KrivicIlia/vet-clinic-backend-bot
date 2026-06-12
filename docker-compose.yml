@@ -1,0 +1,18 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      # Эти переменные будут переопределены в Render
+      DATABASE_URL: ${DATABASE_URL}
+      ENVIRONMENT: production
+      CORS_ORIGINS: ${CORS_ORIGINS}
+    ports:
+      - "8000:8000"
+    # Убираем depends_on на postgres
+
+  bot:
+    build: ./bot
+    environment:
+      EXTERNAL_API_URL: ${EXTERNAL_API_URL}
+    ports:
+      - "5000:5000"

@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+test_bot.py
+
+# IDE
+.vscode/
+.vs/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+.env.local
+.env.*.local
+
+
+# Logs
+*.log
+logs/
+
+# Docker
+*.pid
+
+# Database local (если используется локально)
+*.db
+*.sqlite
+*.sqlite3
+
+# TypeScript frontend (если есть общий фронт)
+node_modules/
+ts/
