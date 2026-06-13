@@ -3,16 +3,20 @@ from typing import List
 
 class Settings(BaseSettings):
     database_url: str
-    vk_bot_url: str = "http://bot:5000"  # Внутри Docker сети
+    vk_bot_url: str = "http://localhost:5000"
     secret_key: str
-    environment: str = "production"
-    cors_origins: List[str] = [
-        "https://vet-clinic-frontend.vercel.app",  # Домен фронтенда
-        "https://your-bot.onrender.com"           # Домен бота
-    ]
+    environment: str = "development"
+    cors_origins: List[str] = ["http://localhost:3000", "http://localhost"]
+    
+    def get_async_database_url(self) -> str:
+        """Возвращает URL с asyncpg драйвером"""
+        url = self.database_url
+        if 'postgresql://' in url and '+asyncpg' not in url:
+            url = url.replace('postgresql://', 'postgresql+asyncpg://')
+        return url
     
     class Config:
         env_file = ".env"
-        extra = "ignore"  # Игнорировать лишние переменные
+        extra = "ignore"
 
 settings = Settings()

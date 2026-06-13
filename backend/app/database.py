@@ -5,10 +5,8 @@ from app.config import settings
 import asyncpg
 from urllib.parse import urlparse
 
-# Базовый класс для моделей
 Base = declarative_base()
 
-# Глобальные переменные
 engine = None
 AsyncSessionLocal = None
 
@@ -21,6 +19,7 @@ async def create_database_if_not_exists():
     user = parsed.username
     password = parsed.password
     
+    # URL для подключения к системной БД (без указания конкретной БД)
     system_conn_str = f"postgresql://{user}:{password}@{host}:{port}/postgres"
     
     try:
@@ -45,8 +44,15 @@ async def init_engine():
     """Инициализация engine после создания БД"""
     global engine
     if engine is None:
+        # ВАЖНО: URL должен заканчиваться на ?async_fallback=true
+        # или использовать правильный asyncpg драйвер
+        db_url = settings.database_url
+        if 'postgresql://' in db_url and '+asyncpg' not in db_url:
+            # Заменяем postgresql:// на postgresql+asyncpg://
+            db_url = db_url.replace('postgresql://', 'postgresql+asyncpg://')
+        
         engine = create_async_engine(
-            settings.database_url,
+            db_url,
             echo=False,
             future=True,
             pool_size=10,
