@@ -3,10 +3,10 @@ from typing import List
 
 class Settings(BaseSettings):
     database_url: str
-    vk_bot_url: str = "http://localhost:5000"
+    vk_bot_url: str = "https://vet-clinic-backend-bot-1.onrender.com"
     secret_key: str
     environment: str = "development"
-    cors_origins: List[str] = ["http://localhost:3000", "http://localhost"]
+    cors_origins: List[str] = ["https://krivicilia.github.io"]
     
     def get_async_database_url(self) -> str:
         """Возвращает URL с asyncpg драйвером"""
