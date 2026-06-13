@@ -1,9 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response  # ← добавь Response
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.config import settings
 from app.database import init_db
 from app.api.v1 import messages, sync, websocket
+from starlette.requests import Request  # ← добавь если используешь request
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -45,18 +46,17 @@ async def root():
     }
 
 @app.api_route("/health", methods=["GET", "HEAD"])
-async def health_check(response: Response):
-    """
-    Эндпоинт для проверки здоровья сервиса.
-    Принимает как GET, так и HEAD запросы.
-    """
-    # Проверка статуса базы данных
-    # db_status = "connected" if database.is_connected else "disconnected"
+async def health_check(request: Request, response: Response):
+    """Проверка здоровья сервиса"""
     
-    # Для HEAD-запроса: устанавливаем кастомный заголовок и возвращаем пустое тело
+    # Для HEAD-запроса возвращаем только заголовки
     if request.method == "HEAD":
         response.headers["X-Database-Status"] = "connected"
-        # HEAD-запрос по стандарту не должен возвращать тело, поэтому return ничего не нужно
-        
-    # Для GET-запроса: возвращаем полный JSON
-    return {"status": "healthy", "database": "connected"}
+        return Response(status_code=200)  # ← пустой ответ с кодом 200
+    
+    # Для GET-запроса возвращаем JSON
+    return {
+        "status": "healthy",
+        "environment": settings.environment,
+        "database": "connected"
+    }
