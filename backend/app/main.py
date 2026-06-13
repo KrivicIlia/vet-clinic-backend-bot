@@ -44,11 +44,19 @@ async def root():
         "architecture": "backend_for_vk_bot"
     }
 
-@app.get("/health")
-async def health():
-    return {
-        "status": "healthy",
-        "environment": settings.environment,
-        "database": "connected",
-        "service": "backend"
-    }
+@app.api_route("/health", methods=["GET", "HEAD"])
+async def health_check(response: Response):
+    """
+    Эндпоинт для проверки здоровья сервиса.
+    Принимает как GET, так и HEAD запросы.
+    """
+    # Проверка статуса базы данных
+    # db_status = "connected" if database.is_connected else "disconnected"
+    
+    # Для HEAD-запроса: устанавливаем кастомный заголовок и возвращаем пустое тело
+    if request.method == "HEAD":
+        response.headers["X-Database-Status"] = "connected"
+        # HEAD-запрос по стандарту не должен возвращать тело, поэтому return ничего не нужно
+        
+    # Для GET-запроса: возвращаем полный JSON
+    return {"status": "healthy", "database": "connected"}
