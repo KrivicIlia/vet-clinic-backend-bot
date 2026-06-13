@@ -22,7 +22,7 @@ CORS(app)
 EXTERNAL_API_URL = os.environ.get('EXTERNAL_API_URL', 'http://localhost:8000/api/v1')
 CLINIC_PHONE = os.environ.get('CLINIC_PHONE', '+7 (982) 717-82-67')
 VK_TOKEN = os.environ.get('VK_ACCESS_TOKEN', '')
-VK_CONFIRMATION_CODE = os.environ.get('VK_CONFIRMATION_CODE', 'ваш_код_подтверждения')
+VK_CONFIRMATION_CODE = os.environ.get('VK_CONFIRMATION_CODE', '')
 
 # Инициализация VK
 vk = None
