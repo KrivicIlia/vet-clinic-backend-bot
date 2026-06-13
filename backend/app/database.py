@@ -3,12 +3,42 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy import text
 from app.config import settings
 import asyncpg
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs, urlunparse
 
 Base = declarative_base()
 
 engine = None
 AsyncSessionLocal = None
+
+def fix_database_url(url: str) -> str:
+    """Преобразует URL для совместимости с asyncpg"""
+    # Заменяем postgresql:// на postgresql+asyncpg://
+    if 'postgresql://' in url and '+asyncpg' not in url:
+        url = url.replace('postgresql://', 'postgresql+asyncpg://')
+    
+    # Проблема: asyncpg не поддерживает sslmode
+    # Преобразуем sslmode=require в ssl=require
+    if 'sslmode=require' in url:
+        url = url.replace('sslmode=require', 'ssl=require')
+    
+    # Если есть другие параметры sslmode, убираем их
+    parsed = urlparse(url)
+    query_params = parse_qs(parsed.query)
+    
+    # Удаляем sslmode если есть
+    if 'sslmode' in query_params:
+        del query_params['sslmode']
+    
+    # Добавляем ssl если нужно
+    if 'require' in str(url) and 'ssl' not in query_params:
+        query_params['ssl'] = ['require']
+    
+    # Собираем URL обратно
+    from urllib.parse import urlencode
+    new_query = urlencode(query_params, doseq=True)
+    
+    result = urlunparse(parsed._replace(query=new_query))
+    return result
 
 async def create_database_if_not_exists():
     """Создает базу данных если она не существует"""
@@ -19,7 +49,6 @@ async def create_database_if_not_exists():
     user = parsed.username
     password = parsed.password
     
-    # URL для подключения к системной БД (без указания конкретной БД)
     system_conn_str = f"postgresql://{user}:{password}@{host}:{port}/postgres"
     
     try:
@@ -44,12 +73,9 @@ async def init_engine():
     """Инициализация engine после создания БД"""
     global engine
     if engine is None:
-        # ВАЖНО: URL должен заканчиваться на ?async_fallback=true
-        # или использовать правильный asyncpg драйвер
-        db_url = settings.database_url
-        if 'postgresql://' in db_url and '+asyncpg' not in db_url:
-            # Заменяем postgresql:// на postgresql+asyncpg://
-            db_url = db_url.replace('postgresql://', 'postgresql+asyncpg://')
+        # Исправляем URL для asyncpg
+        db_url = fix_database_url(settings.database_url)
+        print(f"🔗 Подключение к БД с URL: {db_url[:50]}...")
         
         engine = create_async_engine(
             db_url,
